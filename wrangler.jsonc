@@ -1,1 +1,15 @@
+{
+"$schema": "https://developers.cloudflare.com/workers/wrangler/config-schema.json",
+"name": "hk-ai-app",
+"main": "worker.js",
+"compatibility_date": "2026-09-10",
 
+"assets": {
+"directory": ".",
+"binding": "ASSETS"
+},
+
+"ai": {
+"binding": "AI"
+}
+}
