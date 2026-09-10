@@ -7,22 +7,19 @@ const quickButtons = document.querySelectorAll(".quick-buttons button");
 
 
 // =========================
-// 加入訊息
+// 顯示訊息
 // =========================
 
 function addMessage(text, type = "ai") {
 
 const message = document.createElement("div");
-
 message.className = `message ${type}`;
 
 const avatar = document.createElement("div");
-
 avatar.className = "avatar";
 avatar.textContent = type === "user" ? "👤" : "🤖";
 
 const bubble = document.createElement("div");
-
 bubble.className = "bubble";
 
 if (type === "ai") {
@@ -40,13 +37,12 @@ message.appendChild(avatar);
 message.appendChild(bubble);
 
 chatBox.appendChild(message);
-
 chatBox.scrollTop = chatBox.scrollHeight;
 }
 
 
 // =========================
-// 簡單文字格式
+// 防止 HTML 注入
 // =========================
 
 function formatText(text) {
@@ -60,52 +56,32 @@ return String(text)
 
 
 // =========================
-// 測試版 AI 回覆
+// 呼叫真正 AI
 // =========================
 
-function localAI(question) {
+async function askAI(question) {
 
-const q = question.toLowerCase();
+const response = await fetch("/api/chat", {
+method: "POST",
 
-if (
-q.includes("你好") ||
-q.includes("hello") ||
-q.includes("hi")
-) {
-return "你好！👋 我係 HK AI。你今日想問我啲咩？";
+headers: {
+"Content-Type": "application/json"
+},
+
+body: JSON.stringify({
+message: question
+})
+});
+
+const data = await response.json();
+
+if (!response.ok || !data.ok) {
+throw new Error(
+data.error || "AI 暫時未能回答"
+);
 }
 
-if (
-q.includes("天氣") ||
-q.includes("天氣點")
-) {
-return "🌤️ 暫時係測試模式。下一階段我哋會接入香港天文台實時天氣資料。";
-}
-
-if (
-q.includes("交通") ||
-q.includes("塞車")
-) {
-return "🚗 暫時係測試模式。下一階段可以接入香港交通消息，出現重要交通事故時亦可以發出提示。";
-}
-
-if (
-q.includes("公共交通") ||
-q.includes("巴士") ||
-q.includes("港鐵") ||
-q.includes("輕鐵")
-) {
-return "🚆 我可以幫你做香港公共交通助手。之後可以加入巴士、港鐵、輕鐵及實時到站資料。";
-}
-
-return `
-收到：「${question}」
-
-目前係 HK AI 第一階段測試版。
-
-下一階段會接入真正 AI，
-到時你可以直接同我自然對話。
-`;
+return data.answer;
 }
 
 
@@ -113,7 +89,7 @@ return `
 // 發送訊息
 // =========================
 
-function sendMessage() {
+async function sendMessage() {
 
 const question = userInput.value.trim();
 
@@ -126,18 +102,47 @@ addMessage(question, "user");
 userInput.value = "";
 
 sendBtn.disabled = true;
+userInput.disabled = true;
 
-setTimeout(() => {
+// 顯示思考中
+addMessage("🤔 AI 正在思考……", "ai");
 
-const answer = localAI(question);
+try {
+
+const answer = await askAI(question);
+
+// 移除最後一個「思考中」
+const messages =
+chatBox.querySelectorAll(".message");
+
+if (messages.length > 0) {
+messages[messages.length - 1].remove();
+}
 
 addMessage(answer, "ai");
 
+} catch (error) {
+
+const messages =
+chatBox.querySelectorAll(".message");
+
+if (messages.length > 0) {
+messages[messages.length - 1].remove();
+}
+
+addMessage(
+"⚠️ 暫時連接不到 AI。\n\n" +
+error.message,
+"ai"
+);
+
+} finally {
+
 sendBtn.disabled = false;
+userInput.disabled = false;
 
 userInput.focus();
-
-}, 500);
+}
 }
 
 
@@ -145,20 +150,26 @@ userInput.focus();
 // 發送按鈕
 // =========================
 
-sendBtn.addEventListener("click", sendMessage);
+sendBtn.addEventListener(
+"click",
+sendMessage
+);
 
 
 // =========================
 // Enter 發送
 // =========================
 
-userInput.addEventListener("keydown", (event) => {
+userInput.addEventListener(
+"keydown",
+(event) => {
 
 if (event.key === "Enter") {
 sendMessage();
 }
 
-});
+}
+);
 
 
 // =========================
@@ -167,15 +178,17 @@ sendMessage();
 
 quickButtons.forEach(button => {
 
-button.addEventListener("click", () => {
+button.addEventListener(
+"click",
+() => {
 
-const question = button.dataset.question;
-
-userInput.value = question;
+userInput.value =
+button.dataset.question;
 
 sendMessage();
 
-});
+}
+);
 
 });
 
@@ -184,21 +197,19 @@ sendMessage();
 // 夜間模式
 // =========================
 
-themeBtn.addEventListener("click", () => {
+themeBtn.addEventListener(
+"click",
+() => {
 
 document.body.classList.toggle("dark");
 
-if (document.body.classList.contains("dark")) {
-
-themeBtn.textContent = "☀️";
-
-} else {
-
-themeBtn.textContent = "🌙";
+themeBtn.textContent =
+document.body.classList.contains("dark")
+? "☀️"
+: "🌙";
 
 }
-
-});
+);
 
 
 // =========================
@@ -211,51 +222,25 @@ window.webkitSpeechRecognition;
 
 if (SpeechRecognition) {
 
-const recognition = new SpeechRecognition();
+const recognition =
+new SpeechRecognition();
 
 recognition.lang = "zh-HK";
-
 recognition.continuous = false;
-
 recognition.interimResults = false;
 
-voiceBtn.addEventListener("click", () => {
+voiceBtn.addEventListener(
+"click",
+() => {
 
 recognition.start();
-
 voiceBtn.textContent = "🔴";
 
-});
-
-recognition.onresult = (event) => {
-
-const text =
-event.results[0][0].transcript;
-
-userInput.value = text;
-
-voiceBtn.textContent = "🎤";
-
-};
-
-recognition.onend = () => {
-
-voiceBtn.textContent = "🎤";
-
-};
-
-recognition.onerror = () => {
-
-voiceBtn.textContent = "🎤";
-
-};
-
-} else {
-
-voiceBtn.addEventListener("click", () => {
-
-alert("你目前使用的瀏覽器不支援語音輸入。");
-
-});
-
 }
+);
+
+recognition.onresult =
+(event) => {
+
+userInput.value =
+event.results[0][0].transcript;
