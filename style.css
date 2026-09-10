@@ -1,0 +1,334 @@
+* {
+box-sizing: border-box;
+margin: 0;
+padding: 0;
+}
+
+body {
+font-family:
+-apple-system,
+BlinkMacSystemFont,
+"Segoe UI",
+"Noto Sans TC",
+Arial,
+sans-serif;
+
+background: #f2f5f9;
+color: #172033;
+min-height: 100vh;
+}
+
+.app {
+width: 100%;
+max-width: 900px;
+min-height: 100vh;
+margin: 0 auto;
+background: white;
+display: flex;
+flex-direction: column;
+}
+
+/* 頂部 */
+
+.topbar {
+display: flex;
+justify-content: space-between;
+align-items: center;
+
+padding: 18px 22px;
+
+background: #111827;
+color: white;
+
+box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
+}
+
+.topbar h1 {
+font-size: 25px;
+margin-bottom: 3px;
+}
+
+.topbar p {
+font-size: 13px;
+opacity: 0.75;
+}
+
+/* 按鈕 */
+
+.icon-btn {
+width: 42px;
+height: 42px;
+
+border: none;
+border-radius: 50%;
+
+background: rgba(255, 255, 255, 0.12);
+color: white;
+
+font-size: 19px;
+cursor: pointer;
+}
+
+.icon-btn:hover {
+background: rgba(255, 255, 255, 0.22);
+}
+
+/* 聊天區 */
+
+.chat-container {
+flex: 1;
+
+display: flex;
+flex-direction: column;
+
+padding: 18px;
+}
+
+.chat-box {
+flex: 1;
+
+display: flex;
+flex-direction: column;
+
+gap: 15px;
+
+overflow-y: auto;
+
+padding-bottom: 15px;
+}
+
+/* 訊息 */
+
+.message {
+display: flex;
+align-items: flex-start;
+gap: 10px;
+
+max-width: 88%;
+}
+
+.message.user {
+align-self: flex-end;
+flex-direction: row-reverse;
+}
+
+.avatar {
+width: 38px;
+height: 38px;
+
+display: flex;
+align-items: center;
+justify-content: center;
+
+flex-shrink: 0;
+
+border-radius: 50%;
+background: #e8eef7;
+
+font-size: 20px;
+}
+
+.message.user .avatar {
+background: #dbeafe;
+}
+
+.bubble {
+padding: 12px 15px;
+
+border-radius: 16px;
+
+background: #eef2f7;
+
+line-height: 1.55;
+}
+
+.message.user .bubble {
+background: #2563eb;
+color: white;
+}
+
+.bubble strong {
+display: block;
+margin-bottom: 5px;
+}
+
+.bubble p {
+margin-top: 5px;
+}
+
+/* 快速按鈕 */
+
+.quick-buttons {
+display: grid;
+
+grid-template-columns: repeat(4, 1fr);
+
+gap: 8px;
+
+margin-bottom: 12px;
+}
+
+.quick-buttons button {
+padding: 10px 7px;
+
+border: 1px solid #d7dee9;
+border-radius: 10px;
+
+background: white;
+
+font-size: 13px;
+
+cursor: pointer;
+
+transition: 0.2s;
+}
+
+.quick-buttons button:hover {
+background: #f1f5ff;
+border-color: #8caaf5;
+}
+
+/* 輸入區 */
+
+.input-area {
+display: flex;
+align-items: center;
+
+gap: 8px;
+
+padding: 10px;
+
+border: 1px solid #d6dce6;
+
+border-radius: 15px;
+
+background: #f8fafc;
+}
+
+.input-area .icon-btn {
+background: #e5eaf2;
+color: #172033;
+}
+
+.input-area input {
+flex: 1;
+
+min-width: 0;
+
+border: none;
+outline: none;
+
+background: transparent;
+
+font-size: 16px;
+
+padding: 8px;
+}
+
+.send-btn {
+width: 44px;
+height: 44px;
+
+border: none;
+border-radius: 12px;
+
+background: #2563eb;
+color: white;
+
+font-size: 20px;
+
+cursor: pointer;
+}
+
+.send-btn:hover {
+background: #1d4ed8;
+}
+
+/* Footer */
+
+footer {
+text-align: center;
+
+padding: 12px;
+
+font-size: 12px;
+
+color: #7b8494;
+}
+
+/* 夜間模式 */
+
+body.dark {
+background: #0b1120;
+color: #e5e7eb;
+}
+
+body.dark .app {
+background: #111827;
+}
+
+body.dark .bubble {
+background: #1f2937;
+}
+
+body.dark .avatar {
+background: #263244;
+}
+
+body.dark .quick-buttons button {
+background: #1f2937;
+color: #e5e7eb;
+border-color: #374151;
+}
+
+body.dark .quick-buttons button:hover {
+background: #273449;
+}
+
+body.dark .input-area {
+background: #1f2937;
+border-color: #374151;
+}
+
+body.dark .input-area input {
+color: white;
+}
+
+body.dark .input-area .icon-btn {
+background: #374151;
+color: white;
+}
+
+body.dark footer {
+color: #9ca3af;
+}
+
+/* 手機版 */
+
+@media (max-width: 600px) {
+
+.topbar {
+padding: 15px;
+}
+
+.topbar h1 {
+font-size: 22px;
+}
+
+.chat-container {
+padding: 12px;
+}
+
+.message {
+max-width: 94%;
+}
+
+.quick-buttons {
+grid-template-columns: repeat(2, 1fr);
+}
+
+.quick-buttons button {
+padding: 11px 5px;
+}
+
+}
