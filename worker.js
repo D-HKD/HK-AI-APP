@@ -19,13 +19,31 @@ headers: corsHeaders
 // 真正 AI：Cloudflare Workers AI
 // =========================
 
+// =========================
+// 真正 AI：Cloudflare Workers AI
+// 支援對話記憶
+// =========================
+
 if (url.pathname === "/api/chat" && request.method === "POST") {
+
 try {
+
 const body = await request.json();
 
 const message = String(body.message || "").trim();
 
+const history = Array.isArray(body.history)
+? body.history
+.filter(item =>
+item &&
+(item.role === "user" || item.role === "assistant") &&
+typeof item.content === "string"
+)
+.slice(-10)
+: [];
+
 if (!message) {
+
 return new Response(
 JSON.stringify({
 ok: false,
@@ -41,61 +59,33 @@ headers: {
 );
 }
 
-const result = await env.AI.run(
-"@cf/zai-org/glm-4.7-flash",
-{
-messages: [
+
+const messages = [
+
 {
 role: "system",
 content:
-"你係 HK AI，一個香港 AI 智能助手。請使用繁體中文或香港粵語回答。回答要自然、清晰、實用。如果問題涉及香港，優先提供香港相關資訊。"
+"你係 HK AI，一個香港 AI 智能助手。" +
+"請使用繁體中文或香港粵語回答。" +
+"回答要自然、清晰、實用。" +
+"如果問題涉及香港，優先提供香港相關資訊。" +
+"你可以根據之前的對話內容理解使用者的追問。"
 },
+
+...history,
+
 {
 role: "user",
 content: message
 }
-],
-max_tokens: 1000
-}
-);
 
-const answer =
-result?.response ||
-result?.output_text ||
-"抱歉，AI 暫時未能回答。";
+];
 
-return new Response(
-JSON.stringify({
-ok: true,
-answer
-}),
+
+const result = await env.AI.run(
+"@cf/zai-org/glm-4.7-flash",
 {
-status: 200,
-headers: {
-...corsHeaders,
-"Content-Type": "application/json"
-}
-}
-);
-
-} catch (error) {
-
-return new Response(
-JSON.stringify({
-ok: false,
-error: error.message
-}),
-{
-status: 500,
-headers: {
-...corsHeaders,
-"Content-Type": "application/json"
-}
-}
-);
-}
-}
-
+messages,
 
 // =========================
 // 香港天氣
