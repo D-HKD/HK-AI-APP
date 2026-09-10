@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HK AI 智能助手</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="app">
+
+<header class="topbar">
+<div>
+<h1>🇭🇰 HK AI</h1>
+<p>香港 AI 智能助手</p>
+</div>
+
+<button id="themeBtn" class="icon-btn">🌙</button>
+</header>
+
+<main class="chat-container">
+
+<div id="chatBox" class="chat-box">
+
+<div class="message ai">
+<div class="avatar">🤖</div>
+
+<div class="bubble">
+<strong>HK AI</strong>
+
+<p>
+你好！👋<br>
+我係 HK AI 智能助手。
+</p>
+
+<p>
+你可以問我香港交通、天氣、
+公共交通或者日常問題。
+</p>
+</div>
+</div>
+
+</div>
+
+<div class="quick-buttons">
+<button data-question="香港今日天氣點樣？">
+🌤️ 香港天氣
+</button>
+
+<button data-question="香港交通情況點樣？">
+🚗 香港交通
+</button>
+
+<button data-question="幫我查香港公共交通">
+🚆 公共交通
+</button>
+
+<button data-question="你好">
+👋 打招呼
+</button>
+</div>
+
+<div class="input-area">
+
+<button id="voiceBtn" class="icon-btn">
+🎤
+</button>
+
+<input
+id="userInput"
+type="text"
+placeholder="輸入你想問嘅問題..."
+autocomplete="off"
+>
+
+<button id="sendBtn" class="send-btn">
+➤
+</button>
+
+</div>
+
+</main>
+
+<footer>
+HK AI 智能助手
+</footer>
+
+</div>
+
+<script src="app.js"></script>
+
+</body>
+</html>
