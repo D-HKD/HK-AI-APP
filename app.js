@@ -1,11 +1,11 @@
+console.log("HK AI app.js loaded");
+
 const chatBox = document.getElementById("chatBox");
 const userInput = document.getElementById("userInput");
 const sendBtn = document.getElementById("sendBtn");
 const voiceBtn = document.getElementById("voiceBtn");
 const themeBtn = document.getElementById("themeBtn");
-const quickButtons = document.querySelectorAll(".quick-buttons button");
 
-// 儲存最近對話
 let conversationHistory = [];
 
 
@@ -15,8 +15,13 @@ let conversationHistory = [];
 
 function addMessage(text, type = "ai") {
 
+if (!chatBox) {
+alert("錯誤：找不到 chatBox");
+return;
+}
+
 const message = document.createElement("div");
-message.className = `message ${type}`;
+message.className = "message " + type;
 
 const avatar = document.createElement("div");
 avatar.className = "avatar";
@@ -25,20 +30,16 @@ avatar.textContent = type === "user" ? "👤" : "🤖";
 const bubble = document.createElement("div");
 bubble.className = "bubble";
 
-if (type === "ai") {
+const strong =
+type === "ai"
+? "<strong>HK AI</strong>"
+: "";
 
-bubble.innerHTML = `
-<strong>HK AI</strong>
-<p>${formatText(text)}</p>
-`;
-
-} else {
-
-bubble.innerHTML = `
-<p>${formatText(text)}</p>
-`;
-
-}
+bubble.innerHTML =
+strong +
+"<p>" +
+formatText(text) +
+"</p>";
 
 message.appendChild(avatar);
 message.appendChild(bubble);
@@ -50,7 +51,7 @@ chatBox.scrollTop = chatBox.scrollHeight;
 
 
 // =========================
-// 安全文字格式
+// 文字安全處理
 // =========================
 
 function formatText(text) {
@@ -64,10 +65,12 @@ return String(text)
 
 
 // =========================
-// 呼叫 AI
+// 呼叫 Worker AI
 // =========================
 
 async function askAI(question) {
+
+console.log("Sending:", question);
 
 const response = await fetch("/api/chat", {
 
@@ -87,18 +90,43 @@ history: conversationHistory
 
 });
 
+console.log("HTTP status:", response.status);
 
-const data = await response.json();
+const rawText = await response.text();
 
+console.log("Worker response:", rawText);
 
-if (!response.ok || !data.ok) {
+let data;
+
+try {
+
+data = JSON.parse(rawText);
+
+} catch (error) {
 
 throw new Error(
-data.error || "AI 暫時未能回答"
+"Worker 返回的不是 JSON：\n" +
+rawText.substring(0, 500)
 );
 
 }
 
+if (!response.ok || !data.ok) {
+
+throw new Error(
+data.error ||
+"AI Worker 發生錯誤"
+);
+
+}
+
+if (!data.answer) {
+
+throw new Error(
+"AI 沒有返回回答"
+);
+
+}
 
 return data.answer;
 }
@@ -110,41 +138,51 @@ return data.answer;
 
 async function sendMessage() {
 
-const question = userInput.value.trim();
+console.log("SEND BUTTON CLICKED");
+
+if (!userInput) {
+
+alert("錯誤：找不到 userInput");
+
+return;
+}
+
+const question =
+userInput.value.trim();
 
 if (!question) {
+
 return;
 }
 
 
-// 顯示使用者問題
-
+// 立即顯示使用者訊息
 addMessage(question, "user");
 
 userInput.value = "";
 
 
-// 鎖定輸入
-
+if (sendBtn) {
 sendBtn.disabled = true;
+}
+
 userInput.disabled = true;
 
 
-// 顯示思考中
-
+// 顯示連線狀態
 addMessage(
-"🤔 AI 正在思考……",
+"⏳ 正在連接 HK AI……",
 "ai"
 );
 
 
 try {
 
-const answer = await askAI(question);
+const answer =
+await askAI(question);
 
 
-// 移除思考中
-
+// 移除最後一個「連線中」
 const messages =
 chatBox.querySelectorAll(".message");
 
@@ -155,20 +193,20 @@ messages[messages.length - 1].remove();
 }
 
 
-// 顯示 AI 回覆
+// 顯示 AI 回答
+addMessage(
+answer,
+"ai"
+);
 
-addMessage(answer, "ai");
 
-
-// 儲存對話
-
+// 保存對話
 conversationHistory.push({
 
 role: "user",
 content: question
 
 });
-
 
 conversationHistory.push({
 
@@ -178,9 +216,10 @@ content: answer
 });
 
 
-// 只保留最近 10 條
-
-if (conversationHistory.length > 10) {
+// 最多保留 10 條
+if (
+conversationHistory.length > 10
+) {
 
 conversationHistory =
 conversationHistory.slice(-10);
@@ -190,7 +229,13 @@ conversationHistory.slice(-10);
 
 } catch (error) {
 
+console.error(
+"HK AI ERROR:",
+error
+);
 
+
+// 移除「連線中」
 const messages =
 chatBox.querySelectorAll(".message");
 
@@ -201,43 +246,143 @@ messages[messages.length - 1].remove();
 }
 
 
+// 顯示真正錯誤
 addMessage(
-"⚠️ 暫時連接不到 AI。\n\n" +
+
+"❌ 發生錯誤\n\n" +
 error.message,
+
 "ai"
+
 );
 
+}
 
-} finally {
 
+if (sendBtn) {
 sendBtn.disabled = false;
+}
+
 userInput.disabled = false;
 
 userInput.focus();
 
 }
 
-}
-
 
 // =========================
-// 發送按鈕
+// Send 按鈕
 // =========================
+
+if (sendBtn) {
 
 sendBtn.addEventListener(
 "click",
-sendMessage
+function(event) {
+
+event.preventDefault();
+
+sendMessage();
+
+}
 );
+
+} else {
+
+console.error(
+"找不到 sendBtn"
+);
+
+}
 
 
 // =========================
 // Enter
 // =========================
 
+if (userInput) {
+
 userInput.addEventListener(
 "keydown",
-event => {
-// 廣東話語音輸入
+function(event) {
+
+if (event.key === "Enter") {
+
+event.preventDefault();
+
+sendMessage();
+
+}
+
+}
+);
+
+}
+
+
+// =========================
+// 快速按鈕
+// =========================
+
+const quickButtons =
+document.querySelectorAll(
+".quick-buttons button"
+);
+
+
+quickButtons.forEach(button => {
+
+button.addEventListener(
+"click",
+function() {
+
+if (!userInput) return;
+
+const question =
+button.dataset.question;
+
+if (question) {
+
+userInput.value =
+question;
+
+sendMessage();
+
+}
+
+}
+);
+
+});
+
+
+// =========================
+// 夜間模式
+// =========================
+
+if (themeBtn) {
+
+themeBtn.addEventListener(
+"click",
+function() {
+
+document.body.classList.toggle(
+"dark"
+);
+
+themeBtn.textContent =
+document.body.classList.contains("dark")
+? "☀️"
+: "🌙";
+
+}
+);
+
+}
+
+
+// =========================
+// 廣東話語音
 // =========================
 
 const SpeechRecognition =
@@ -245,7 +390,10 @@ window.SpeechRecognition ||
 window.webkitSpeechRecognition;
 
 
-if (SpeechRecognition) {
+if (
+SpeechRecognition &&
+voiceBtn
+) {
 
 const recognition =
 new SpeechRecognition();
@@ -259,15 +407,62 @@ recognition.interimResults = false;
 
 voiceBtn.addEventListener(
 "click",
-() => {
+function() {
+
+try {
 
 recognition.start();
 
-voiceBtn.textContent = "🔴";
+voiceBtn.textContent =
+"🔴";
+
+} catch (error) {
+
+console.log(error);
+
+}
 
 }
 );
 
 
 recognition.onresult =
-event => {
+function(event) {
+
+userInput.value =
+event.results[0][0]
+.transcript;
+
+voiceBtn.textContent =
+"🎤";
+
+};
+
+
+recognition.onend =
+function() {
+
+voiceBtn.textContent =
+"🎤";
+
+};
+
+
+recognition.onerror =
+function() {
+
+voiceBtn.textContent =
+"🎤";
+
+};
+
+}
+
+
+// =========================
+// 啟動完成
+// =========================
+
+console.log(
+"HK AI frontend ready"
+);
